@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nashville Trainer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:           #070b12;
+            --surface:      #0c1018;
+            --surface-2:    #111722;
+            --border:       rgba(255,255,255,0.07);
+            --accent:       #7c3aed;
+            --accent-soft:  rgba(124,58,237,0.12);
+            --accent-glow:  rgba(124,58,237,0.25);
+            --success:      #10b981;
+            --success-soft: rgba(16,185,129,0.1);
+            --success-glow: rgba(16,185,129,0.2);
+            --error:        #f43f5e;
+            --error-soft:   rgba(244,63,94,0.1);
+            --text:         #e2e8f0;
+            --text-muted:   #4b5563;
+            --text-dim:     #1e293b;
+        }
+        body.theme-light {
+            --bg:        #f1f5f9;
+            --surface:   #ffffff;
+            --surface-2: #f8fafc;
+            --border:    rgba(0,0,0,0.08);
+            --text:      #0f172a;
+            --text-muted: #64748b;
+            --text-dim:  #e2e8f0;
+            --surface-2: #f1f5f9;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.35s, color 0.35s;
+            position: relative;
+        }
+
+        /* ── CHORD CARDS ── */
+        .chord-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 82px;
+            height: 94px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+        }
+        .chord-idle   { opacity: 0.28; transform: scale(0.96); }
+        .chord-active {
+            border-color: rgba(124,58,237,0.65);
+            background: linear-gradient(145deg, rgba(124,58,237,0.13), rgba(99,102,241,0.05));
+            box-shadow: 0 0 0 1px rgba(124,58,237,0.25), 0 0 28px var(--accent-glow), 0 6px 16px rgba(0,0,0,0.35);
+            transform: scale(1.1) translateY(-3px);
+        }
+        .chord-correct {
+            border-color: rgba(16,185,129,0.55);
+            background: var(--success-soft);
+            box-shadow: 0 0 18px var(--success-glow);
+            opacity: 1;
+            transform: scale(1.01);
+        }
+        .chord-error-flash {
+            animation: shake 0.28s linear;
+            border-color: rgba(244,63,94,0.6) !important;
+            background: var(--error-soft) !important;
+            box-shadow: 0 0 18px rgba(244,63,94,0.2) !important;
+        }
+        .chord-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            line-height: 1;
+            color: var(--text);
+            transition: color 0.2s;
+        }
+        .chord-active  .chord-text { color: #c4b5fd; }
+        .chord-correct .chord-text { color: #6ee7b7; }
+        .chord-answer {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-top: 9px;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            transition: color 0.2s;
+        }
+        .chord-answer.is-correct { color: #34d399; }
+
+        /* ── BEAT DOTS ── */
+        .beat-dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.08s ease;
+        }
+        .beat-dot-down {
+            background: var(--accent);
+            border-color: #a78bfa;
+            box-shadow: 0 0 12px var(--accent-glow);
+            transform: scale(1.5);
+        }
+        .beat-dot-up {
+            background: #f59e0b;
+            border-color: #fcd34d;
+            box-shadow: 0 0 10px rgba(245,158,11,0.5);
+            transform: scale(1.25);
+        }
+
+        /* ── PROGRESS DOTS ── */
+        .prog-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        .prog-dot.done    { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+        .prog-dot.current { background: #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.6); transform: scale(1.4); }
+
+        /* ── KEYBOARD KEYS ── */
+        .key-cap {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: var(--surface-2);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-bottom-width: 2px;
+            color: #a78bfa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        body.theme-light .key-cap {
+            border-color: rgba(0,0,0,0.12);
+            border-bottom-color: rgba(0,0,0,0.06);
+        }
+
+        /* ── GAME CARD ── */
+        .game-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 32px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .game-card::after {
+            content: '';
+            position: absolute;
+            top: -80px; left: 50%;
+            transform: translateX(-50%);
+            width: 280px; height: 200px;
+            background: radial-gradient(ellipse, rgba(124,58,237,0.06), transparent 65%);
+            pointer-events: none;
+        }
+
+        /* ── STAGE OVERLAY CARD ── */
+        .overlay-card {
+            background: linear-gradient(160deg, rgba(13,17,27,0.95), rgba(10,13,22,0.98));
+            border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 28px;
+            padding: 48px 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(24px);
+            animation: overlayCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        body.theme-light .overlay-card {
+            background: rgba(255,255,255,0.96);
+            border-color: rgba(124,58,237,0.15);
+        }
+
+        /* ── THEME TOGGLE ── */
+        .theme-btn {
+            padding: 8px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+        }
+        .theme-btn:hover { color: var(--text); background: var(--surface); }
+
+        /* ── XP BADGE ── */
+        .xp-badge {
+            background: linear-gradient(135deg, #5b21b6, #4338ca);
+            border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 14px;
+            padding: 6px 14px;
+            box-shadow: 0 4px 14px rgba(91,33,182,0.3);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60%  { transform: translateX(-5px); }
+            40%,80%  { transform: translateX(5px); }
+        }
+        @keyframes floatUp {
+            0%   { transform: translateY(28px) scale(0.85); opacity: 0; }
+            15%  { transform: translateY(-4px) scale(1.06); opacity: 1; }
+            82%  { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-44px) scale(0.9); opacity: 0; }
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.94); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes overlayCardIn {
+            from { opacity: 0; transform: scale(0.93) translateY(12px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes xpPop {
+            0%   { transform: scale(1); }
+            45%  { transform: scale(1.14); }
+            100% { transform: scale(1); }
+        }
+        @keyframes timerPulse {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.6; }
+        }
+        .animate-worshipper { animation: floatUp 2.2s cubic-bezier(0.16,1,0.3,1) forwards; }
+        .card-in  { animation: cardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+        .xp-pop   { animation: xpPop 0.32s ease both; }
+    </style>
+</head>
+<body class="theme-dark">
+
+    <!-- FLOATING BONUS -->
+    <div id="bonus-container" class="fixed inset-0 flex items-center justify-center pointer-events-none z-50 overflow-hidden"></div>
+
+    <!-- STAGE ANNOUNCEMENT OVERLAY -->
+    <div id="stage-announcement" class="hidden fixed inset-0 z-40 flex items-center justify-center p-6"
+         style="background: rgba(4,6,12,0.88); backdrop-filter: blur(20px);">
+        <div class="overlay-card">
+            <div class="w-14 h-14 rounded-2xl mx-auto mb-6 flex items-center justify-center"
+                 style="background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(99,102,241,0.1)); border: 1px solid rgba(124,58,237,0.25);">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                </svg>
+            </div>
+            <p id="announcement-title" class="text-3xl font-black tracking-tight mb-2" style="color: var(--text);">ETAPA INICIAL</p>
+            <p id="announcement-subtitle" class="text-sm font-medium tracking-widest uppercase mb-8"
+               style="color: #8b5cf6; font-family: 'JetBrains Mono', monospace;">Traducción de Acorde a Grado</p>
+            <button onclick="dismissAnnouncement()"
+                    class="w-full py-3 rounded-2xl font-bold text-white text-sm tracking-wide cursor-pointer transition-all duration-200"
+                    style="background: linear-gradient(135deg, #7c3aed, #6366f1); box-shadow: 0 4px 20px rgba(124,58,237,0.4);"
+                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 24px rgba(124,58,237,0.5)'"
+                    onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 20px rgba(124,58,237,0.4)'">
+                Comenzar Etapa
+            </button>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header style="border-bottom: 1px solid var(--border);">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+
+            <!-- Brand + Stage -->
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                     style="background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(99,102,241,0.15)); border: 1px solid rgba(124,58,237,0.3);">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" style="color: #a78bfa;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-bold tracking-widest uppercase" style="color: #8b5cf6; letter-spacing: 0.12em;">Nashville Trainer</p>
+                    <p id="stage-level-indicator" class="text-xs font-medium" style="color: var(--text-muted);">Etapa Inicial • Nivel 1</p>
+                </div>
+            </div>
+
+            <!-- Right controls -->
+            <div class="flex items-center gap-3">
+                <button id="theme-toggle" class="theme-btn">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 6.343l.707-.707" />
+                    </svg>
+                </button>
+
+                <!-- Match counter (hidden on mobile) -->
+                <div class="hidden sm:flex flex-col items-end gap-0.5">
+                    <p class="text-xs font-bold tracking-widest uppercase" style="color: var(--text-muted); font-size: 0.6rem;">Partida</p>
+                    <div id="progress-dots" class="flex items-center gap-1"></div>
+                </div>
+
+                <!-- XP -->
+                <div class="xp-badge">
+                    <p class="text-xs font-bold uppercase tracking-widest text-violet-300" style="font-size: 0.55rem; letter-spacing: 0.14em;">XP</p>
+                    <p id="xp-display" class="font-black text-white" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; line-height: 1.1;">0000</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="max-w-lg w-full mx-auto px-5 py-8 flex-grow flex flex-col justify-center gap-5">
+
+        <!-- Level mechanics bar (timer / metronome) -->
+        <div class="min-h-[48px] flex items-center justify-center">
+
+            <!-- Timer -->
+            <div id="timer-wrapper" class="hidden items-center gap-3 px-5 py-2.5 rounded-full"
+                 style="background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2);">
+                <svg class="w-3.5 h-3.5" style="color: #f87171;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                </svg>
+                <span id="timer-display" class="font-bold text-sm"
+                      style="font-family: 'JetBrains Mono', monospace; color: #f87171;">1:00</span>
+            </div>
+
+            <!-- Metronome -->
+            <div id="metronome-wrapper" class="hidden flex-col items-center gap-2.5">
+                <p id="countdown-display" class="font-black text-2xl tracking-widest"
+                   style="color: #fbbf24; font-family: 'JetBrains Mono', monospace;">¡PREPARADO!</p>
+                <div class="flex items-center gap-2.5">
+                    <div id="beat-1" class="beat-dot"></div>
+                    <div id="beat-2" class="beat-dot"></div>
+                    <div id="beat-3" class="beat-dot"></div>
+                    <div id="beat-4" class="beat-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME CARD -->
+        <div class="game-card">
+
+            <!-- Key badge -->
+            <div class="flex justify-center mb-7">
+                <div class="flex items-center gap-2 px-4 py-1.5 rounded-full"
+                     style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);">
+                    <span class="text-xs font-semibold uppercase tracking-widest" style="color: #8b5cf6; font-size: 0.6rem; letter-spacing: 0.14em;">Tonalidad</span>
+                    <span id="key-display" class="font-black text-white"
+                          style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">—</span>
+                </div>
+            </div>
+
+            <!-- Chord cards -->
+            <div id="progression-container" class="flex justify-center items-end gap-3 flex-wrap min-h-[100px]"></div>
+
+            <!-- Feedback -->
+            <div class="mt-6 h-5 text-center">
+                <p id="feedback-message" class="text-sm font-semibold tracking-wide opacity-0 transition-opacity duration-200"></p>
+            </div>
+        </div>
+
+        <!-- Keyboard guide -->
+        <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl"
+             style="background: var(--surface); border: 1px solid var(--border);">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" style="color: var(--text-muted);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M10 14h.01M14 14h4"/>
+            </svg>
+            <p id="keyboard-guide" class="text-xs" style="color: var(--text-muted);"></p>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="border-top: 1px solid var(--border);">
+        <div class="max-w-4xl mx-auto px-6 py-3 flex items-center justify-center gap-1.5">
+            <span class="text-xs" style="color: var(--text-muted);">Error</span>
+            <span class="text-xs font-bold" style="color: var(--error); font-family: 'JetBrains Mono', monospace;">−25 XP</span>
+            <span class="text-xs" style="color: var(--text-dim); margin: 0 4px;">·</span>
+            <span class="text-xs" style="color: var(--text-muted);">Completa 10 partidas para subir de nivel</span>
+        </div>
+    </footer>
+
+    <script>
+        // ─── KEY DATA ──────────────────────────────────────────────────────────────
+        const keyData = {
+            "C":  { degrees: [
+                { chord: "C",   nashville: "1", base: "C" },
+                { chord: "Dm",  nashville: "2", base: "D" },
+                { chord: "Em",  nashville: "3", base: "E" },
+                { chord: "F",   nashville: "4", base: "F" },
+                { chord: "G",   nashville: "5", base: "G" },
+                { chord: "Am",  nashville: "6", base: "A" }
+            ]},
+            "G":  { degrees: [
+                { chord: "G",   nashville: "1", base: "G" },
+                { chord: "Am",  nashville: "2", base: "A" },
+                { chord: "Bm",  nashville: "3", base: "B" },
+                { chord: "C",   nashville: "4", base: "C" },
+                { chord: "D",   nashville: "5", base: "D" },
+                { chord: "Em",  nashville: "6", base: "E" }
+            ]},
+            "D":  { degrees: [
+                { chord: "D",   nashville: "1", base: "D" },
+                { chord: "Em",  nashville: "2", base: "E" },
+                { chord: "F#m", nashville: "3", base: "F" },
+                { chord: "G",   nashville: "4", base: "G" },
+                { chord: "A",   nashville: "5", base: "A" },
+                { chord: "Bm",  nashville: "6", base: "B" }
+            ]},
+            "A":  { degrees: [
+                { chord: "A",   nashville: "1", base: "A" },
+                { chord: "Bm",  nashville: "2", base: "B" },
+                { chord: "C#m", nashville: "3", base: "C" },
+                { chord: "D",   nashville: "4", base: "D" },
+                { chord: "E",   nashville: "5", base: "E" },
+                { chord: "F#m", nashville: "6", base: "F" }
+            ]},
+            "E":  { degrees: [
+                { chord: "E",   nashville: "1", base: "E" },
+                { chord: "F#m", nashville: "2", base: "F" },
+                { chord: "G#m", nashville: "3", base: "G" },
+                { chord: "A",   nashville: "4", base: "A" },
+                { chord: "B",   nashville: "5", base: "B" },
+                { chord: "C#m", nashville: "6", base: "C" }
+            ]},
+            "B":  { degrees: [
+                { chord: "B",   nashville: "1", base: "B" },
+                { chord: "C#m", nashville: "2", base: "C" },
+                { chord: "D#m", nashville: "3", base: "D" },
+                { chord: "E",   nashville: "4", base: "E" },
+                { chord: "F#",  nashville: "5", base: "F" },
+                { chord: "G#m", nashville: "6", base: "G" }
+            ]},
+            "F":  { degrees: [
+                { chord: "F",   nashville: "1", base: "F" },
+                { chord: "Gm",  nashville: "2", base: "G" },
+                { chord: "Am",  nashville: "3", base: "A" },
+                { chord: "Bb",  nashville: "4", base: "B" },
+                { chord: "C",   nashville: "5", base: "C" },
+                { chord: "Dm",  nashville: "6", base: "D" }
+            ]},
+            "Bb": { degrees: [
+                { chord: "Bb",  nashville: "1", base: "B" },
+                { chord: "Cm",  nashville: "2", base: "C" },
+                { chord: "Dm",  nashville: "3", base: "D" },
+                { chord: "Eb",  nashville: "4", base: "E" },
+                { chord: "F",   nashville: "5", base: "F" },
+                { chord: "Gm",  nashville: "6", base: "G" }
+            ]}
+        };
+
+        // ─── PROGRESSION PATTERNS (indices 0-5 = degrees 1-6) ─────────────────────
+        const progressionPatterns = [
+            [0,4,5,3],[0,5,3,4],[0,3,4,0],[1,4,0,0],[3,4,0,5],[5,3,0,4],
+            [0,3,1,4],[0,2,3,4],[5,4,3,4],[0,0,3,4],[1,3,4,0],[5,3,4,0],
+            [0,4,3,4],[0,1,4,0],[0,5,1,4],[3,5,1,4],[5,0,3,4],[3,4,5,0],
+            [0,3,5,4],[0,2,4,0],[1,4,5,0],[0,3,1,5],[5,1,3,4],[0,5,4,3],
+            [3,0,5,4],[0,4,1,5],[5,5,3,4],[1,5,3,4],[0,3,4,5],[4,3,5,0]
+        ];
+
+        const recentHistory = [];
+        const HISTORY_SIZE = 4;
+
+        function generateProgression() {
+            const keyNames = Object.keys(keyData);
+            let key, patternIdx, historyKey;
+            let attempts = 0;
+            do {
+                key = keyNames[Math.floor(Math.random() * keyNames.length)];
+                patternIdx = Math.floor(Math.random() * progressionPatterns.length);
+                historyKey = key + '-' + patternIdx;
+                attempts++;
+            } while (recentHistory.includes(historyKey) && attempts < 20);
+            recentHistory.push(historyKey);
+            if (recentHistory.length > HISTORY_SIZE) recentHistory.shift();
+            const pattern = progressionPatterns[patternIdx];
+            const degrees = keyData[key].degrees;
+            return {
+                key,
+                chords:    pattern.map(i => degrees[i].chord),
+                nashville: pattern.map(i => degrees[i].nashville),
+                bases:     pattern.map(i => degrees[i].base)
+            };
+        }
+
+        // ─── GAME STATE ────────────────────────────────────────────────────────────
+        let state = {
+            stage: 'inicial',
+            level: 1,
+            matchCount: 1,
+            totalXp: 0,
+            currentChordIdx: 0,
+            isTransitioning: false,
+            currentProg: null
+        };
+
+        let timerInterval = null;
+        let timeLeft = 60;
+        let metronomeInterval = null;
+        let metronomeBeat = 0;
+        let metronomeCountdown = 1;
+        let metronomeActive = false;
+        let audioContext = null;
+
+        const container  = document.getElementById('progression-container');
+        const xpDisplay  = document.getElementById('xp-display');
+        const feedback   = document.getElementById('feedback-message');
+        const guide      = document.getElementById('keyboard-guide');
+
+        // ─── INIT ──────────────────────────────────────────────────────────────────
+        function initGame() {
+            setupTheme();
+            triggerStageAnnouncement();
+        }
+
+        function triggerStageAnnouncement() {
+            state.isTransitioning = true;
+            clearIntervals();
+            const title    = document.getElementById('announcement-title');
+            const subtitle = document.getElementById('announcement-subtitle');
+            if (state.stage === 'inicial') {
+                title.innerText    = 'ETAPA INICIAL';
+                subtitle.innerText = 'Traduce Acordes → Grados Nashville';
+            } else {
+                title.innerText    = 'ETAPA INTERMEDIA';
+                subtitle.innerText = 'Traduce Grados Nashville → Notas Base';
+            }
+            document.getElementById('stage-announcement').classList.remove('hidden');
+        }
+
+        function dismissAnnouncement() {
+            document.getElementById('stage-announcement').classList.add('hidden');
+            state.isTransitioning = false;
+            loadNewMatch();
+        }
+
+        // ─── LOAD MATCH ────────────────────────────────────────────────────────────
+        function loadNewMatch() {
+            clearIntervals();
+            state.currentChordIdx = 0;
+            state.isTransitioning = false;
+
+            document.getElementById('stage-level-indicator').innerText =
+                `Etapa ${state.stage.charAt(0).toUpperCase() + state.stage.slice(1)} • Nivel ${state.level}`;
+
+            // Progress dots
+            const dotsEl = document.getElementById('progress-dots');
+            dotsEl.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const d = document.createElement('div');
+                d.className = 'prog-dot' +
+                    (i < state.matchCount ? ' done' : i === state.matchCount ? ' current' : '');
+                dotsEl.appendChild(d);
+            }
+
+            state.currentProg = generateProgression();
+            document.getElementById('key-display').innerText = state.currentProg.key;
+
+            // Render cards
+            container.innerHTML = '';
+            state.currentProg.chords.forEach((chord, i) => {
+                const card = document.createElement('div');
+                card.id = `chord-${i}`;
+                card.className = `chord-card card-in ${i === 0 ? 'chord-active' : 'chord-idle'}`;
+                card.style.animationDelay = `${i * 55}ms`;
+
+                let label;
+                if (state.stage === 'inicial') {
+                    label = `<span class="chord-text">${chord}</span>`;
+                } else {
+                    const isMinor = chord.includes('m') && !chord.includes('maj');
+                    label = `<span class="chord-text" style="color:#a78bfa;">${state.currentProg.nashville[i]}${isMinor ? 'm' : ''}</span>`;
+                }
+                card.innerHTML = `${label}<span id="ans-${i}" class="chord-answer">—</span>`;
+                container.appendChild(card);
+            });
+
+            // Keyboard guide
+            if (state.stage === 'inicial') {
+                guide.innerHTML = `Teclas numéricas&nbsp;
+                    <span class="key-cap">1</span>&nbsp;·&nbsp;
+                    <span class="key-cap">2</span>&nbsp;·&nbsp;
+                    <span class="key-cap">3</span>&nbsp;·&nbsp;
+                    <span class="key-cap">4</span>&nbsp;·&nbsp;
+                    <span class="key-cap">5</span>&nbsp;·&nbsp;
+                    <span class="key-cap">6</span>&nbsp;·&nbsp;
+                    <span class="key-cap">7</span>`;
+            } else {
+                guide.innerHTML = `Teclas de letra&nbsp;
+                    <span class="key-cap">C</span>&nbsp;·&nbsp;
+                    <span class="key-cap">D</span>&nbsp;·&nbsp;
+                    <span class="key-cap">E</span>&nbsp;·&nbsp;
+                    <span class="key-cap">F</span>&nbsp;·&nbsp;
+                    <span class="key-cap">G</span>&nbsp;·&nbsp;
+                    <span class="key-cap">A</span>&nbsp;·&nbsp;
+                    <span class="key-cap">B</span>`;
+            }
+
+            setupLevelMechanics();
+        }
+
+        // ─── LEVEL MECHANICS ───────────────────────────────────────────────────────
+        function setupLevelMechanics() {
+            document.getElementById('timer-wrapper').classList.add('hidden');
+            document.getElementById('metronome-wrapper').classList.add('hidden');
+
+            if (state.level === 2) {
+                const tw = document.getElementById('timer-wrapper');
+                tw.classList.remove('hidden');
+                tw.style.display = 'flex';
+                timeLeft = 60;
+                document.getElementById('timer-display').innerText = '1:00';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const s = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+                    document.getElementById('timer-display').innerText = `0:${s}`;
+                    if (timeLeft <= 10) {
+                        document.getElementById('timer-display').style.color = '#f87171';
+                    }
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        showFeedback('¡Tiempo agotado! Recomenzando partida', 'error');
+                        setTimeout(loadNewMatch, 1500);
+                    }
+                }, 1000);
+            } else if (state.level === 3) {
+                const mw = document.getElementById('metronome-wrapper');
+                mw.classList.remove('hidden');
+                mw.style.display = 'flex';
+                metronomeCountdown = 1;
+                metronomeBeat = 0;
+                metronomeActive = false;
+                resetBeatDots();
+                document.getElementById('countdown-display').innerText = '1';
+
+                metronomeInterval = setInterval(() => {
+                    if (!metronomeActive) {
+                        playMetronomeClick(metronomeCountdown === 1);
+                        if (metronomeCountdown < 4) {
+                            metronomeCountdown++;
+                            document.getElementById('countdown-display').innerText = metronomeCountdown;
+                        } else {
+                            document.getElementById('countdown-display').innerText = '¡TOCA YA!';
+                            metronomeActive = true;
+                            advanceMetronomeBeat();
+                        }
+                    } else {
+                        advanceMetronomeBeat();
+                    }
+                }, 1000);
+            }
+        }
+
+        function advanceMetronomeBeat() {
+            resetBeatDots();
+            metronomeBeat = (metronomeBeat % 4) + 1;
+            const dot = document.getElementById(`beat-${metronomeBeat}`);
+            dot.classList.add(metronomeBeat === 1 ? 'beat-dot-down' : 'beat-dot-up');
+            playMetronomeClick(metronomeBeat === 1);
+        }
+
+        function resetBeatDots() {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`beat-${i}`).className = 'beat-dot';
+            }
+        }
+
+        function clearIntervals() {
+            clearInterval(timerInterval);
+            clearInterval(metronomeInterval);
+        }
+
+        function playMetronomeClick(isPulse1 = false) {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const osc  = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            if (isPulse1) {
+                osc.frequency.value = 400;
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else {
+                osc.frequency.value = 600;
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now); osc.stop(now + 0.08);
+            }
+        }
+
+        // ─── INPUT ─────────────────────────────────────────────────────────────────
+        window.addEventListener('keydown', (e) => {
+            if (state.isTransitioning) return;
+            if (state.level === 3 && !metronomeActive) return;
+
+            let input = e.key.toUpperCase();
+            let targetAnswer = '';
+
+            if (state.stage === 'inicial') {
+                if (!['1','2','3','4','5','6','7'].includes(input)) return;
+                targetAnswer = state.currentProg.nashville[state.currentChordIdx];
+            } else {
+                if (!['C','D','E','F','G','A','B'].includes(input)) return;
+                targetAnswer = state.currentProg.bases[state.currentChordIdx];
+            }
+
+            const currentCard = document.getElementById(`chord-${state.currentChordIdx}`);
+            const ansLabel    = document.getElementById(`ans-${state.currentChordIdx}`);
+
+            let metronomeFail = false;
+            if (state.level === 3 && metronomeBeat !== 1) metronomeFail = true;
+
+            if (input === targetAnswer && !metronomeFail) {
+                // ── CORRECT ──
+                currentCard.className = 'chord-card chord-correct';
+
+                if (state.stage === 'inicial') {
+                    const isMinor = state.currentProg.chords[state.currentChordIdx].includes('m') &&
+                                    !state.currentProg.chords[state.currentChordIdx].includes('maj');
+                    ansLabel.innerText = input + (isMinor ? 'm' : '');
+                } else {
+                    ansLabel.innerText = state.currentProg.chords[state.currentChordIdx];
+                }
+                ansLabel.className = 'chord-answer is-correct';
+
+                state.currentChordIdx++;
+
+                if (state.currentChordIdx >= state.currentProg.chords.length) {
+                    handleMatchComplete();
+                } else {
+                    const nextCard = document.getElementById(`chord-${state.currentChordIdx}`);
+                    nextCard.className = 'chord-card chord-active';
+                }
+            } else {
+                // ── ERROR ──
+                state.totalXp = Math.max(0, state.totalXp - 25);
+                xpDisplay.innerText = String(state.totalXp).padStart(4, '0');
+                xpDisplay.classList.remove('xp-pop');
+                void xpDisplay.offsetWidth;
+                xpDisplay.classList.add('xp-pop');
+
+                currentCard.classList.add('chord-error-flash');
+                let errMsg = '¡Grado incorrecto!';
+                if (metronomeFail) errMsg = '¡Fuera de tempo! Debes pulsar en el Pulso 1';
+                showFeedback(`${errMsg} &nbsp;−25 XP`, 'error');
+
+                setTimeout(() => currentCard.classList.remove('chord-error-flash'), 300);
+            }
+        });
+
+        // ─── MATCH COMPLETE ────────────────────────────────────────────────────────
+        function handleMatchComplete() {
+            state.isTransitioning = true;
+            clearIntervals();
+            state.totalXp += 100;
+            xpDisplay.innerText = String(state.totalXp).padStart(4, '0');
+            xpDisplay.classList.remove('xp-pop');
+            void xpDisplay.offsetWidth;
+            xpDisplay.classList.add('xp-pop');
+            showFeedback('¡Progresión completada! &nbsp;+100 XP', 'success');
+
+            if (state.level === 2 && timeLeft >= 30) triggerWorshipperBonus();
+
+            state.matchCount++;
+            setTimeout(() => {
+                if (state.matchCount > 10) advanceLevel();
+                else loadNewMatch();
+            }, 1400);
+        }
+
+        function triggerWorshipperBonus() {
+            const bc    = document.getElementById('bonus-container');
+            const bonus = document.createElement('div');
+            bonus.className = 'animate-worshipper';
+            bonus.style.cssText = `
+                background: linear-gradient(135deg, #f59e0b, #f97316);
+                color: #0c0a04;
+                font-family: 'Inter', sans-serif;
+                font-weight: 900;
+                font-size: 1.1rem;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                padding: 12px 28px;
+                border-radius: 18px;
+                box-shadow: 0 8px 32px rgba(249,115,22,0.4), 0 0 0 1px rgba(255,255,255,0.15);
+            `;
+            bonus.innerText = 'Good job, worshipper!';
+            bc.appendChild(bonus);
+            setTimeout(() => bonus.remove(), 2200);
+        }
+
+        function advanceLevel() {
+            state.matchCount = 1;
+            state.level++;
+            if (state.level > 3) {
+                state.level = 1;
+                if (state.stage === 'inicial') {
+                    state.stage = 'intermedia';
+                    triggerStageAnnouncement();
+                } else {
+                    showFeedback('¡HAS COMPLETADO TODAS LAS ETAPAS! Eres un maestro del tono.', 'success');
+                    state.stage = 'inicial';
+                    triggerStageAnnouncement();
+                }
+            } else {
+                loadNewMatch();
+            }
+        }
+
+        function showFeedback(html, type) {
+            feedback.innerHTML = html;
+            feedback.style.color = type === 'success' ? 'var(--success)' : 'var(--error)';
+            feedback.style.opacity = '1';
+        }
+
+        // ─── THEME ─────────────────────────────────────────────────────────────────
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            if (body.classList.contains('theme-dark')) {
+                body.classList.replace('theme-dark', 'theme-light');
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+            } else {
+                body.classList.replace('theme-light', 'theme-dark');
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 6.343l.707-.707" />`;
+            }
+        });
+
+        function setupTheme() {
+            document.body.classList.add('theme-dark');
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
