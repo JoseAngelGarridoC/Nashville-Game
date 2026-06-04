@@ -137,6 +137,34 @@
         .prog-dot.done    { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
         .prog-dot.current { background: #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.6); transform: scale(1.4); }
 
+        /* ── MOBILE KEY BUTTONS ── */
+        .mobile-key-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.35rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.12s, border-color 0.12s, transform 0.1s, color 0.12s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mobile-key-btn:active,
+        .mobile-key-btn.pressed {
+            transform: scale(0.88);
+            background: var(--accent-soft);
+            border-color: rgba(124,58,237,0.5);
+            color: #c4b5fd;
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
         /* ── KEYBOARD KEYS ── */
         .key-cap {
             font-family: 'JetBrains Mono', monospace;
@@ -366,14 +394,17 @@
             </div>
         </div>
 
-        <!-- Keyboard guide -->
-        <div class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl"
+        <!-- Keyboard guide (desktop) -->
+        <div class="hidden sm:flex items-center justify-center gap-2 py-3 px-4 rounded-2xl"
              style="background: var(--surface); border: 1px solid var(--border);">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 flex-shrink-0" style="color: var(--text-muted);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M10 14h.01M14 14h4"/>
             </svg>
             <p id="keyboard-guide" class="text-xs" style="color: var(--text-muted);"></p>
         </div>
+
+        <!-- Mobile virtual buttons -->
+        <div id="mobile-keys" class="flex items-center justify-center gap-2.5 flex-wrap py-2"></div>
 
     </main>
 
@@ -603,6 +634,7 @@
                     <span class="key-cap">B</span>`;
             }
 
+            renderMobileKeys();
             setupLevelMechanics();
         }
 
@@ -698,11 +730,11 @@
         }
 
         // ─── INPUT ─────────────────────────────────────────────────────────────────
-        window.addEventListener('keydown', (e) => {
+        function handleInput(rawKey) {
             if (state.isTransitioning) return;
             if (state.level === 3 && !metronomeActive) return;
 
-            let input = e.key.toUpperCase();
+            const input = rawKey.toUpperCase();
             let targetAnswer = '';
 
             if (state.stage === 'inicial') {
@@ -755,7 +787,31 @@
 
                 setTimeout(() => currentCard.classList.remove('chord-error-flash'), 300);
             }
-        });
+        }
+
+        window.addEventListener('keydown', (e) => { handleInput(e.key); });
+
+        function renderMobileKeys() {
+            const wrap = document.getElementById('mobile-keys');
+            wrap.innerHTML = '';
+            const keys = state.stage === 'inicial'
+                ? ['1','2','3','4','5','6']
+                : ['C','D','E','F','G','A','B'];
+            keys.forEach(k => {
+                const btn = document.createElement('button');
+                btn.className = 'mobile-key-btn';
+                btn.textContent = k;
+                btn.setAttribute('aria-label', k);
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    btn.classList.add('pressed');
+                    setTimeout(() => btn.classList.remove('pressed'), 180);
+                    handleInput(k);
+                });
+                btn.addEventListener('click', () => handleInput(k));
+                wrap.appendChild(btn);
+            });
+        }
 
         // ─── MATCH COMPLETE ────────────────────────────────────────────────────────
         function handleMatchComplete() {
