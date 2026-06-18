@@ -7,34 +7,52 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ── ANTHROPIC PALETTE ── (ivory / clay) */
         :root {
-            --bg:           #070b12;
-            --surface:      #0c1018;
-            --surface-2:    #111722;
-            --border:       rgba(255,255,255,0.07);
-            --accent:       #7c3aed;
-            --accent-soft:  rgba(124,58,237,0.12);
-            --accent-glow:  rgba(124,58,237,0.25);
-            --success:      #10b981;
-            --success-soft: rgba(16,185,129,0.1);
-            --success-glow: rgba(16,185,129,0.2);
-            --error:        #f43f5e;
-            --error-soft:   rgba(244,63,94,0.1);
-            --text:         #e2e8f0;
-            --text-muted:   #4b5563;
-            --text-dim:     #1e293b;
+            --bg:           #F0EEE6;
+            --surface:      #FBFAF7;
+            --surface-2:    #F4F2EA;
+            --border:       rgba(20,20,19,0.10);
+            --accent:       #CC785C;
+            --accent-2:     #B7593B;
+            --accent-soft:  rgba(204,120,92,0.12);
+            --accent-glow:  rgba(204,120,92,0.18);
+            --accent-text:  #AF5635;
+            --success:      #5C7D4F;
+            --success-soft: rgba(92,125,79,0.12);
+            --success-glow: rgba(92,125,79,0.16);
+            --success-text: #4C6A40;
+            --error:        #BC4B36;
+            --error-soft:   rgba(188,75,54,0.10);
+            --error-text:   #A83E2B;
+            --text:         #1A1915;
+            --text-muted:   #6F6B61;
+            --text-dim:     #CFCABA;
+            --gold:         #C2862F;
         }
-        body.theme-light {
-            --bg:        #f1f5f9;
-            --surface:   #ffffff;
-            --surface-2: #f8fafc;
-            --border:    rgba(0,0,0,0.08);
-            --text:      #0f172a;
-            --text-muted: #64748b;
-            --text-dim:  #e2e8f0;
-            --surface-2: #f1f5f9;
+        body.theme-dark {
+            --bg:           #1B1A17;
+            --surface:      #25231F;
+            --surface-2:    #2D2B26;
+            --border:       rgba(240,238,230,0.10);
+            --accent:       #D4886B;
+            --accent-2:     #C2734F;
+            --accent-soft:  rgba(212,136,107,0.14);
+            --accent-glow:  rgba(212,136,107,0.20);
+            --accent-text:  #E0A084;
+            --success:      #8BAA7B;
+            --success-soft: rgba(139,170,123,0.12);
+            --success-glow: rgba(139,170,123,0.18);
+            --success-text: #A5C295;
+            --error:        #D9694F;
+            --error-soft:   rgba(217,105,79,0.12);
+            --error-text:   #E58468;
+            --text:         #F0EEE6;
+            --text-muted:   #A39E92;
+            --text-dim:     #3A3833;
+            --gold:         #D9A861;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; }
@@ -65,25 +83,25 @@
             transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
             user-select: none;
         }
-        .chord-idle   { opacity: 0.28; transform: scale(0.96); }
+        .chord-idle   { opacity: 0.4; transform: scale(0.97); }
         .chord-active {
-            border-color: rgba(124,58,237,0.65);
-            background: linear-gradient(145deg, rgba(124,58,237,0.13), rgba(99,102,241,0.05));
-            box-shadow: 0 0 0 1px rgba(124,58,237,0.25), 0 0 28px var(--accent-glow), 0 6px 16px rgba(0,0,0,0.35);
-            transform: scale(1.1) translateY(-3px);
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            box-shadow: 0 6px 18px rgba(20,20,19,0.07);
+            transform: scale(1.06) translateY(-2px);
         }
         .chord-correct {
-            border-color: rgba(16,185,129,0.55);
+            border-color: var(--success);
             background: var(--success-soft);
-            box-shadow: 0 0 18px var(--success-glow);
+            box-shadow: 0 4px 12px var(--success-glow);
             opacity: 1;
             transform: scale(1.01);
         }
         .chord-error-flash {
             animation: shake 0.28s linear;
-            border-color: rgba(244,63,94,0.6) !important;
+            border-color: var(--error) !important;
             background: var(--error-soft) !important;
-            box-shadow: 0 0 18px rgba(244,63,94,0.2) !important;
+            box-shadow: 0 4px 12px rgba(188,75,54,0.15) !important;
         }
         .chord-text {
             font-family: 'JetBrains Mono', monospace;
@@ -93,8 +111,8 @@
             color: var(--text);
             transition: color 0.2s;
         }
-        .chord-active  .chord-text { color: #c4b5fd; }
-        .chord-correct .chord-text { color: #6ee7b7; }
+        .chord-active  .chord-text { color: var(--accent-text); }
+        .chord-correct .chord-text { color: var(--success-text); }
         .chord-answer {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.65rem;
@@ -104,26 +122,26 @@
             letter-spacing: 0.06em;
             transition: color 0.2s;
         }
-        .chord-answer.is-correct { color: #34d399; }
+        .chord-answer.is-correct { color: var(--success-text); }
 
         /* ── BEAT DOTS ── */
         .beat-dot {
             width: 9px; height: 9px;
             border-radius: 50%;
             background: var(--text-dim);
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
             transition: all 0.08s ease;
         }
         .beat-dot-down {
             background: var(--accent);
-            border-color: #a78bfa;
-            box-shadow: 0 0 12px var(--accent-glow);
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
             transform: scale(1.5);
         }
         .beat-dot-up {
-            background: #f59e0b;
-            border-color: #fcd34d;
-            box-shadow: 0 0 10px rgba(245,158,11,0.5);
+            background: var(--gold);
+            border-color: var(--gold);
+            box-shadow: 0 0 6px rgba(194,134,47,0.35);
             transform: scale(1.25);
         }
 
@@ -131,11 +149,11 @@
         .prog-dot {
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            background: var(--text-dim);
             transition: all 0.3s ease;
         }
-        .prog-dot.done    { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
-        .prog-dot.current { background: #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.6); transform: scale(1.4); }
+        .prog-dot.done    { background: var(--accent); }
+        .prog-dot.current { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transform: scale(1.4); }
 
         /* ── MOBILE KEY BUTTONS ── */
         .mobile-key-btn {
@@ -160,9 +178,9 @@
         .mobile-key-btn.pressed {
             transform: scale(0.88);
             background: var(--accent-soft);
-            border-color: rgba(124,58,237,0.5);
-            color: #c4b5fd;
-            box-shadow: 0 0 16px var(--accent-glow);
+            border-color: var(--accent);
+            color: var(--accent-text);
+            box-shadow: 0 0 12px var(--accent-glow);
         }
 
         /* ── KEYBOARD KEYS ── */
@@ -173,24 +191,21 @@
             padding: 2px 6px;
             border-radius: 5px;
             background: var(--surface-2);
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid var(--border);
             border-bottom-width: 2px;
-            color: #a78bfa;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
-        body.theme-light .key-cap {
-            border-color: rgba(0,0,0,0.12);
-            border-bottom-color: rgba(0,0,0,0.06);
+            color: var(--accent-text);
+            box-shadow: 0 1px 2px rgba(20,20,19,0.06);
         }
 
         /* ── GAME CARD ── */
         .game-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 28px;
+            border-radius: 24px;
             padding: 32px 28px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 1px 2px rgba(20,20,19,0.04), 0 8px 28px rgba(20,20,19,0.04);
         }
         .game-card::after {
             content: '';
@@ -198,25 +213,22 @@
             top: -80px; left: 50%;
             transform: translateX(-50%);
             width: 280px; height: 200px;
-            background: radial-gradient(ellipse, rgba(124,58,237,0.06), transparent 65%);
+            background: radial-gradient(ellipse, var(--accent-glow), transparent 65%);
+            opacity: 0.5;
             pointer-events: none;
         }
 
         /* ── STAGE OVERLAY CARD ── */
         .overlay-card {
-            background: linear-gradient(160deg, rgba(13,17,27,0.95), rgba(10,13,22,0.98));
-            border: 1px solid rgba(124,58,237,0.2);
-            border-radius: 28px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
             padding: 48px 40px;
             max-width: 420px;
             width: 100%;
             text-align: center;
-            backdrop-filter: blur(24px);
+            box-shadow: 0 20px 60px rgba(20,20,19,0.18);
             animation: overlayCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-        body.theme-light .overlay-card {
-            background: rgba(255,255,255,0.96);
-            border-color: rgba(124,58,237,0.15);
         }
 
         /* ── THEME TOGGLE ── */
@@ -233,11 +245,11 @@
 
         /* ── XP BADGE ── */
         .xp-badge {
-            background: linear-gradient(135deg, #5b21b6, #4338ca);
-            border: 1px solid rgba(167,139,250,0.2);
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 14px;
             padding: 6px 14px;
-            box-shadow: 0 4px 14px rgba(91,33,182,0.3);
+            box-shadow: 0 4px 14px var(--accent-glow);
         }
 
         /* ── ANIMATIONS ── */
@@ -272,31 +284,34 @@
         .animate-worshipper { animation: floatUp 2.2s cubic-bezier(0.16,1,0.3,1) forwards; }
         .card-in  { animation: cardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
         .xp-pop   { animation: xpPop 0.32s ease both; }
+
+        /* ── SERIF DISPLAY (Anthropic editorial feel) ── */
+        .serif { font-family: 'Fraunces', Georgia, serif; }
     </style>
 </head>
-<body class="theme-dark">
+<body class="theme-light">
 
     <!-- FLOATING BONUS -->
     <div id="bonus-container" class="fixed inset-0 flex items-center justify-center pointer-events-none z-50 overflow-hidden"></div>
 
     <!-- STAGE ANNOUNCEMENT OVERLAY -->
     <div id="stage-announcement" class="hidden fixed inset-0 z-40 flex items-center justify-center p-6"
-         style="background: rgba(4,6,12,0.88); backdrop-filter: blur(20px);">
+         style="background: rgba(26,25,21,0.45); backdrop-filter: blur(8px);">
         <div class="overlay-card">
             <div class="w-14 h-14 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-                 style="background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(99,102,241,0.1)); border: 1px solid rgba(124,58,237,0.25);">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                 style="background: var(--accent-soft); border: 1px solid var(--accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" style="color: var(--accent-text);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                 </svg>
             </div>
-            <p id="announcement-title" class="text-3xl font-black tracking-tight mb-2" style="color: var(--text);">ETAPA INICIAL</p>
-            <p id="announcement-subtitle" class="text-sm font-medium tracking-widest uppercase mb-8"
-               style="color: #8b5cf6; font-family: 'JetBrains Mono', monospace;">Traducción de Acorde a Grado</p>
+            <p id="announcement-title" class="serif text-4xl font-semibold tracking-tight mb-3" style="color: var(--text);">Etapa Inicial</p>
+            <p id="announcement-subtitle" class="text-sm font-medium tracking-wide mb-8"
+               style="color: var(--text-muted);">Traducción de Acorde a Grado</p>
             <button onclick="dismissAnnouncement()"
-                    class="w-full py-3 rounded-2xl font-bold text-white text-sm tracking-wide cursor-pointer transition-all duration-200"
-                    style="background: linear-gradient(135deg, #7c3aed, #6366f1); box-shadow: 0 4px 20px rgba(124,58,237,0.4);"
-                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 24px rgba(124,58,237,0.5)'"
-                    onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 20px rgba(124,58,237,0.4)'">
+                    class="w-full py-3 rounded-full font-semibold text-white text-sm tracking-wide cursor-pointer transition-all duration-200"
+                    style="background: var(--accent); box-shadow: 0 4px 16px var(--accent-glow);"
+                    onmouseover="this.style.background='var(--accent-2)'; this.style.transform='translateY(-1px)'"
+                    onmouseout="this.style.background='var(--accent)'; this.style.transform=''">
                 Comenzar Etapa
             </button>
         </div>
@@ -308,14 +323,14 @@
 
             <!-- Brand + Stage -->
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-                     style="background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(99,102,241,0.15)); border: 1px solid rgba(124,58,237,0.3);">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" style="color: #a78bfa;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                     style="background: var(--accent); border: 1px solid var(--accent-2);">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" style="color: #fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                     </svg>
                 </div>
                 <div>
-                    <p class="text-xs font-bold tracking-widest uppercase" style="color: #8b5cf6; letter-spacing: 0.12em;">Nashville Trainer</p>
+                    <p class="serif text-base font-semibold tracking-tight" style="color: var(--text); line-height: 1.1;">Nashville Trainer</p>
                     <p id="stage-level-indicator" class="text-xs font-medium" style="color: var(--text-muted);">Etapa Inicial • Nivel 1</p>
                 </div>
             </div>
@@ -324,7 +339,7 @@
             <div class="flex items-center gap-3">
                 <button id="theme-toggle" class="theme-btn">
                     <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 6.343l.707-.707" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </button>
 
@@ -336,8 +351,8 @@
 
                 <!-- XP -->
                 <div class="xp-badge">
-                    <p class="text-xs font-bold uppercase tracking-widest text-violet-300" style="font-size: 0.55rem; letter-spacing: 0.14em;">XP</p>
-                    <p id="xp-display" class="font-black text-white" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; line-height: 1.1;">0000</p>
+                    <p class="text-xs font-bold uppercase tracking-widest" style="color: rgba(255,255,255,0.75); font-size: 0.55rem; letter-spacing: 0.14em;">XP</p>
+                    <p id="xp-display" class="font-bold text-white" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; line-height: 1.1;">0000</p>
                 </div>
             </div>
         </div>
@@ -351,18 +366,18 @@
 
             <!-- Timer -->
             <div id="timer-wrapper" class="hidden items-center gap-3 px-5 py-2.5 rounded-full"
-                 style="background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.2);">
-                <svg class="w-3.5 h-3.5" style="color: #f87171;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                 style="background: var(--error-soft); border: 1px solid var(--error);">
+                <svg class="w-3.5 h-3.5" style="color: var(--error-text);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
                 </svg>
                 <span id="timer-display" class="font-bold text-sm"
-                      style="font-family: 'JetBrains Mono', monospace; color: #f87171;">1:00</span>
+                      style="font-family: 'JetBrains Mono', monospace; color: var(--error-text);">1:00</span>
             </div>
 
             <!-- Metronome -->
             <div id="metronome-wrapper" class="hidden flex-col items-center gap-2.5">
-                <p id="countdown-display" class="font-black text-2xl tracking-widest"
-                   style="color: #fbbf24; font-family: 'JetBrains Mono', monospace;">¡PREPARADO!</p>
+                <p id="countdown-display" class="font-bold text-2xl tracking-wide"
+                   style="color: var(--gold); font-family: 'JetBrains Mono', monospace;">¡PREPARADO!</p>
                 <div class="flex items-center gap-2.5">
                     <div id="beat-1" class="beat-dot"></div>
                     <div id="beat-2" class="beat-dot"></div>
@@ -378,10 +393,10 @@
             <!-- Key badge -->
             <div class="flex justify-center mb-7">
                 <div class="flex items-center gap-2 px-4 py-1.5 rounded-full"
-                     style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);">
-                    <span class="text-xs font-semibold uppercase tracking-widest" style="color: #8b5cf6; font-size: 0.6rem; letter-spacing: 0.14em;">Tonalidad</span>
-                    <span id="key-display" class="font-black text-white"
-                          style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">—</span>
+                     style="background: var(--accent-soft); border: 1px solid var(--border);">
+                    <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--accent-text); font-size: 0.6rem; letter-spacing: 0.14em;">Tonalidad</span>
+                    <span id="key-display" class="font-bold"
+                          style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: var(--text);">—</span>
                 </div>
             </div>
 
@@ -557,10 +572,10 @@
             const title    = document.getElementById('announcement-title');
             const subtitle = document.getElementById('announcement-subtitle');
             if (state.stage === 'inicial') {
-                title.innerText    = 'ETAPA INICIAL';
+                title.innerText    = 'Etapa Inicial';
                 subtitle.innerText = 'Traduce Acordes → Grados Nashville';
             } else {
-                title.innerText    = 'ETAPA INTERMEDIA';
+                title.innerText    = 'Etapa Intermedia';
                 subtitle.innerText = 'Traduce Grados Nashville → Notas Base';
             }
             document.getElementById('stage-announcement').classList.remove('hidden');
@@ -607,7 +622,7 @@
                     label = `<span class="chord-text">${chord}</span>`;
                 } else {
                     const isMinor = chord.includes('m') && !chord.includes('maj');
-                    label = `<span class="chord-text" style="color:#a78bfa;">${state.currentProg.nashville[i]}${isMinor ? 'm' : ''}</span>`;
+                    label = `<span class="chord-text" style="color:var(--accent-text);">${state.currentProg.nashville[i]}${isMinor ? 'm' : ''}</span>`;
                 }
                 card.innerHTML = `${label}<span id="ans-${i}" class="chord-answer">—</span>`;
                 container.appendChild(card);
@@ -654,7 +669,7 @@
                     const s = timeLeft < 10 ? '0' + timeLeft : timeLeft;
                     document.getElementById('timer-display').innerText = `0:${s}`;
                     if (timeLeft <= 10) {
-                        document.getElementById('timer-display').style.color = '#f87171';
+                        document.getElementById('timer-display').style.color = 'var(--error-text)';
                     }
                     if (timeLeft <= 0) {
                         clearInterval(timerInterval);
@@ -892,7 +907,8 @@
         });
 
         function setupTheme() {
-            document.body.classList.add('theme-dark');
+            document.body.classList.remove('theme-dark');
+            document.body.classList.add('theme-light');
         }
 
         window.onload = initGame;
