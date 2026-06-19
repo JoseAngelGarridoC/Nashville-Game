@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Del acorde al número · Nashville Trainer</title>
+    <meta name="description" content="Cómo funciona la sustitución de acordes por números en el sistema de numeración de Nashville, y por qué los músicos de sesión la prefieren.">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── ANTHROPIC PALETTE ── (ivory / clay) — shared with the trainer */
+        :root {
+            --bg:           #F0EEE6;
+            --surface:      #FBFAF7;
+            --surface-2:    #F4F2EA;
+            --border:       rgba(20,20,19,0.10);
+            --accent:       #CC785C;
+            --accent-2:     #B7593B;
+            --accent-soft:  rgba(204,120,92,0.12);
+            --accent-glow:  rgba(204,120,92,0.18);
+            --accent-text:  #AF5635;
+            --success:      #5C7D4F;
+            --success-soft: rgba(92,125,79,0.12);
+            --success-text: #4C6A40;
+            --text:         #1A1915;
+            --text-muted:   #6F6B61;
+            --text-dim:     #CFCABA;
+            --gold:         #C2862F;
+        }
+        body.theme-dark {
+            --bg:           #1B1A17;
+            --surface:      #25231F;
+            --surface-2:    #2D2B26;
+            --border:       rgba(240,238,230,0.10);
+            --accent:       #D4886B;
+            --accent-2:     #C2734F;
+            --accent-soft:  rgba(212,136,107,0.14);
+            --accent-glow:  rgba(212,136,107,0.20);
+            --accent-text:  #E0A084;
+            --success:      #8BAA7B;
+            --success-soft: rgba(139,170,123,0.12);
+            --success-text: #A5C295;
+            --text:         #F0EEE6;
+            --text-muted:   #A39E92;
+            --text-dim:     #3A3833;
+            --gold:         #D9A861;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.35s, color 0.35s;
+        }
+
+        .serif { font-family: 'Fraunces', Georgia, serif; }
+        .mono  { font-family: 'JetBrains Mono', monospace; }
+
+        /* ── HEADER / THEME ── */
+        .theme-btn {
+            padding: 8px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+        }
+        .theme-btn:hover { color: var(--text); background: var(--surface); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent-text); }
+
+        /* ── ARTICLE PROSE ── */
+        .prose { max-width: 680px; }
+        .prose p {
+            font-size: 1.05rem;
+            line-height: 1.75;
+            color: var(--text);
+            margin-bottom: 1.35rem;
+        }
+        .prose h2 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin: 2.8rem 0 1rem;
+            line-height: 1.2;
+        }
+        .prose h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 1.8rem 0 0.6rem;
+            color: var(--text);
+        }
+        .prose a {
+            color: var(--accent-text);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-thickness: 1px;
+        }
+        .prose strong { font-weight: 700; }
+        .prose ul {
+            list-style: none;
+            margin: 0 0 1.5rem;
+            padding: 0;
+        }
+        .prose li {
+            position: relative;
+            padding-left: 1.4rem;
+            margin-bottom: 0.7rem;
+            font-size: 1.05rem;
+            line-height: 1.65;
+            color: var(--text);
+        }
+        .prose li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0.7rem;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .prose code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            background: var(--accent-soft);
+            color: var(--accent-text);
+            padding: 1px 6px;
+            border-radius: 5px;
+        }
+
+        /* ── CALLOUT ── */
+        .callout {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin: 2rem 0;
+        }
+        .callout p:last-child { margin-bottom: 0; }
+
+        /* ── DEGREE TABLE ── */
+        .degree-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: 0 1px 2px rgba(20,20,19,0.04), 0 8px 28px rgba(20,20,19,0.04);
+            margin: 2rem 0;
+        }
+        .degree-table { width: 100%; border-collapse: collapse; }
+        .degree-table th {
+            text-align: left;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            padding: 0 12px 12px;
+        }
+        .degree-table td {
+            padding: 10px 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+        .degree-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--accent-text);
+        }
+        .degree-quality { color: var(--text-muted); font-size: 0.85rem; }
+
+        /* ── CHORD CHIP ROW (mini, non-interactive) ── */
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 1.6rem 0 2rem;
+        }
+        .chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 56px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+        }
+        .chip .num {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent-text);
+            line-height: 1;
+        }
+        .chip .name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 24px;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            box-shadow: 0 4px 16px var(--accent-glow);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .cta:hover { background: var(--accent-2); transform: translateY(-1px); }
+    </style>
+</head>
+<body class="theme-light">
+
+    <!-- HEADER -->
+    <header style="border-bottom: 1px solid var(--border);">
+        <div class="max-w-3xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3" style="text-decoration:none;">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                     style="background: var(--accent); border: 1px solid var(--accent-2);">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" style="color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="serif text-base font-semibold tracking-tight" style="color: var(--text); line-height:1.1;">Nashville Trainer</p>
+                    <p class="text-xs font-medium" style="color: var(--text-muted);">Notas del estudio</p>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="back-link" aria-label="Volver al inicio">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h4a1 1 0 001-1V10"/>
+                    </svg>
+                    Inicio
+                </a>
+                <button id="theme-toggle" class="theme-btn">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ARTICLE -->
+    <main class="flex-grow">
+        <article class="max-w-3xl mx-auto px-6 py-12 sm:py-16">
+
+            <!-- Eyebrow + title -->
+            <p class="text-xs font-semibold uppercase tracking-widest mb-4" style="color: var(--accent-text); letter-spacing:0.14em;">Teoría musical · Lectura de 6 min</p>
+            <h1 class="serif font-semibold tracking-tight mb-5" style="font-size: clamp(2rem, 6vw, 3rem); line-height:1.1;">
+                Del acorde al número: cómo pensar la armonía con el sistema de Nashville
+            </h1>
+            <p class="text-lg mb-2" style="color: var(--text-muted); line-height:1.6;">
+                Por qué los músicos de sesión cambian <span class="mono">C&nbsp;–&nbsp;G&nbsp;–&nbsp;Am&nbsp;–&nbsp;F</span> por
+                <span class="mono">1&nbsp;–&nbsp;5&nbsp;–&nbsp;6&nbsp;–&nbsp;4</span>, y cómo esa sustitución te vuelve más libre.
+            </p>
+
+            <hr style="border:none; border-top:1px solid var(--border); margin: 2.5rem 0;">
+
+            <div class="prose">
+                <p>
+                    Imagina que estás en una sesión de grabación. El productor dice: «la subimos un tono para que entre mejor en la voz».
+                    Si tu partitura dice <code>C – G – Am – F</code>, ahora tienes que recalcular cada acorde sobre la marcha.
+                    Pero si dice <code>1 – 5 – 6 – 4</code>, no cambia <strong>nada</strong>: los números siguen siendo los mismos en cualquier tonalidad.
+                </p>
+                <p>
+                    Esa es la idea central del <strong>sistema de numeración de Nashville</strong>, nacido entre los músicos de estudio
+                    de Nashville en los años 50. En lugar de nombrar los acordes por su letra, los nombramos por su <em>posición</em>
+                    dentro de la escala. Sustituir el acorde por su número no es una simple abreviatura: es una forma distinta de
+                    entender la música, centrada en la función y no en el nombre.
+                </p>
+
+                <h2>La escala como sistema de coordenadas</h2>
+                <p>
+                    Toda tonalidad mayor tiene siete notas, y sobre cada una se construye un acorde. Numeramos esos acordes del
+                    <span class="mono">1</span> al <span class="mono">7</span> siguiendo la escala. En la tonalidad de <strong>Do mayor</strong>
+                    queda así:
+                </p>
+
+                <div class="degree-card">
+                    <table class="degree-table">
+                        <thead>
+                            <tr><th>Grado</th><th>Acorde en Do</th><th>Cualidad</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="degree-num">1</td><td>C</td><td class="degree-quality">Mayor — la tónica, el "hogar"</td></tr>
+                            <tr><td class="degree-num">2</td><td>Dm</td><td class="degree-quality">menor</td></tr>
+                            <tr><td class="degree-num">3</td><td>Em</td><td class="degree-quality">menor</td></tr>
+                            <tr><td class="degree-num">4</td><td>F</td><td class="degree-quality">Mayor — la subdominante</td></tr>
+                            <tr><td class="degree-num">5</td><td>G</td><td class="degree-quality">Mayor — la dominante, crea tensión</td></tr>
+                            <tr><td class="degree-num">6</td><td>Am</td><td class="degree-quality">menor — el relativo menor</td></tr>
+                            <tr><td class="degree-num">7</td><td>Bdim</td><td class="degree-quality">disminuido (poco usado)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    Fíjate en el patrón de cualidades: <strong>mayor, menor, menor, mayor, mayor, menor, disminuido</strong>.
+                    Ese patrón es <em>idéntico</em> en cualquier tonalidad mayor. Por eso, una vez que lo memorizas, puedes
+                    deducir los acordes de cualquier canción sin tablas.
+                </p>
+
+                <h2>La misma progresión, cualquier tonalidad</h2>
+                <p>
+                    Aquí está la magia de la sustitución. Una progresión <code>1 – 5 – 6 – 4</code> —probablemente la más usada en
+                    el pop— se traduce a notas distintas según la tonalidad, pero el número <em>nunca</em> cambia:
+                </p>
+
+                <div class="chip-row">
+                    <div class="chip"><span class="num">1</span><span class="name">C</span></div>
+                    <div class="chip"><span class="num">5</span><span class="name">G</span></div>
+                    <div class="chip"><span class="num">6</span><span class="name">Am</span></div>
+                    <div class="chip"><span class="num">4</span><span class="name">F</span></div>
+                </div>
+
+                <ul>
+                    <li>En <strong>Do</strong>: <span class="mono">C – G – Am – F</span></li>
+                    <li>En <strong>Sol</strong>: <span class="mono">G – D – Em – C</span></li>
+                    <li>En <strong>Re</strong>: <span class="mono">D – A – Bm – G</span></li>
+                </ul>
+
+                <p>
+                    Transportar deja de ser un problema de aritmética y se convierte en algo automático. El número
+                    captura <strong>la función</strong> del acorde —su papel en la historia que cuenta la canción—,
+                    mientras que la letra solo captura su altura concreta.
+                </p>
+
+                <h2>Cómo se escribe (y se lee) un número de Nashville</h2>
+                <p>
+                    Las convenciones son ligeras y prácticas, pensadas para escribirse rápido sobre un atril:
+                </p>
+                <ul>
+                    <li><strong>Número solo</strong> = acorde mayor. <code>1</code>, <code>4</code> y <code>5</code> suelen ser mayores.</li>
+                    <li><strong>Número con una <code>m</code></strong> o un guion (<code>6m</code>, <code>2m</code>) = acorde menor.</li>
+                    <li>Una <strong>barra</strong> indica el bajo: <code>1/3</code> es el acorde <span class="mono">1</span> con la tercera en el bajo.</li>
+                    <li>Los <strong>números subrayados o agrupados</strong> indican que dos acordes comparten el mismo compás.</li>
+                </ul>
+
+                <div class="callout">
+                    <p>
+                        <strong>En este entrenador</strong> practicas justo esa traducción en dos direcciones: primero de
+                        <em>acorde a grado</em> (ves <span class="mono">Am</span> y respondes <span class="mono">6</span>),
+                        y luego de <em>grado a nota base</em>. Es exactamente el músculo mental que usa un músico de sesión.
+                    </p>
+                </div>
+
+                <h2>Por qué sustituir el acorde por el número te hace mejor músico</h2>
+                <p>
+                    Pensar en números no es solo comodidad de notación. Cambia la forma en que oyes:
+                </p>
+                <ul>
+                    <li><strong>Transportas sin esfuerzo.</strong> Subir o bajar de tono no toca tu partitura.</li>
+                    <li><strong>Reconoces patrones.</strong> Descubres que miles de canciones comparten el mismo <code>1 – 6 – 4 – 5</code>.</li>
+                    <li><strong>Te comunicas con cualquiera.</strong> «Vamos al 4» se entiende sin importar el instrumento ni la tonalidad.</li>
+                    <li><strong>Improvisas con criterio.</strong> Empiezas a oír tensión y reposo (el <span class="mono">5</span> que pide volver al <span class="mono">1</span>) en vez de letras sueltas.</li>
+                </ul>
+
+                <p>
+                    La meta no es dejar de usar los nombres de los acordes, sino tener un segundo idioma que revele la
+                    <em>estructura</em> debajo de ellos. Cuando ese idioma se vuelve automático, dejas de leer música
+                    nota a nota y empiezas a entenderla como un todo.
+                </p>
+
+                <div class="callout">
+                    <p>¿Listo para entrenar el oído y la traducción mental hasta volverla instintiva?</p>
+                    <p style="margin-top:1rem;"><a href="index.html" class="cta">Abrir el entrenador
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a></p>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="border-top: 1px solid var(--border);">
+        <div class="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between gap-4">
+            <span class="text-xs" style="color: var(--text-muted);">Nashville Trainer · Notas del estudio</span>
+            <a href="index.html" class="back-link">Volver al entrenador</a>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle — mirrors the trainer's behaviour (light default, warm dark)
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            if (body.classList.contains('theme-dark')) {
+                body.classList.replace('theme-dark', 'theme-light');
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+            } else {
+                body.classList.replace('theme-light', 'theme-dark');
+                icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 6.343l.707-.707" />`;
+            }
+        });
+    </script>
+</body>
+</html>
